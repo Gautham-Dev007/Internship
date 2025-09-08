@@ -15,13 +15,13 @@ To explore a project, either **open the folder** or **download and extract the `
 
 | File/Folder | Type | Description |
 |-------------|------|-------------|
-| **Face_Recognition** | 📁 Folder | Face recognition project using image processing and AI techniques. |
+| **Face_Recognition** | 📁 Folder | Face recognition project using image processing and AI techniques in Python. |
 | **Industrial Data System Control** | 📁 Folder | Industrial automation and data acquisition/control (UI designed in Figma). |
 | **Visual_Pointer** | 📁 Folder | Visual pointer/tracking system with GUI interaction using a camera. |
-| **WiFi_SMTP** | 📁 Folder | IoT email client project using Wi-Fi (SMTP protocol) for notifications. |
+| **WiFi_SMTP** | 📁 Folder | IoT email client project using Wi-Fi (SMTP protocol) for notifications c++ Code. |
 | **Face Recog.zip** | 📦 ZIP | Another face recognition implementation (different model or approach). |
 | **Face_Recognition.zip** | 📦 ZIP | Duplicate/alternate version of Face Recognition project. |
-| **STM32_3PHASEdemo.zip** | 📦 ZIP | STM32 demo for monitoring & controlling a 3-phase power system. |
+| **STM32_3PHASEdemo.zip** | 📦 ZIP | STM32 demo for monitoring & controlling a 3-phase power system APPLICATION. |
 | **LICENSE** | 📄 File | Repository license file. |
 | **README.md** | 📄 File | This file (project overview). |
 
