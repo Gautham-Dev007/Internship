@@ -5,6 +5,7 @@
 ![License](https://img.shields.io/github/license/Gautham-Dev007/Internship)
 ![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)
 
+
 This repository is a **central hub for multiple embedded systems, IoT, and computer vision projects**.  
 ⚠️ **Important:** All projects are packaged as `.zip` archives.  
 To explore a project, **download and extract** the corresponding `.zip` file first.
