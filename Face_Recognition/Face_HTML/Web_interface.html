@@ -1,0 +1,349 @@
+update this
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Face Capture Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- JSZip + FileSaver for ZIP downloads (free, client-side) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-L2sRjVb0QbDFZxK1qDLF70qLwVqv+1X0x8h1nA1sS3uKk3v7b7Q6kQ2o9YmdrAgG2w1DtdxW0dYrm3rH8b0QvA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" integrity="sha512-v3b6H0fQGm7q6yF8P2cK3R9Q8wz3a2bG1z+o8d8b3Dq0yF0ZQf2Dk2QpY1m2kLQ1M5vZ0a3r0OeJQy7M3eE9Ww==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body class="bg-gray-50 min-h-screen text-gray-800">
+  <!-- Header -->
+  <header class="bg-blue-600 text-white shadow">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <h1 class="text-xl md:text-2xl font-bold">Face Capture Dashboard</h1>
+      <div id="status-indicator" class="text-sm md:text-base">Loading status…</div>
+    </div>
+  </header>
+
+  <!-- Banner -->
+  <div id="banner" class="hidden">
+    <div class="max-w-6xl mx-auto px-4 py-3">
+      <div id="banner-inner" class="rounded-lg p-3"></div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <!-- Controls row -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Remote control -->
+      <div class="bg-white rounded-xl shadow p-4 space-y-3">
+        <h2 class="font-semibold text-lg">Remote Control</h2>
+        <button id="toggleBtn"
+          class="w-full py-2 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">
+          Loading…
+        </button>
+        <p class="text-xs text-gray-500">
+          Controls the capture app on your PC via Firebase Realtime Database.
+        </p>
+        <div class="text-sm text-gray-700">
+          <div>Last active: <span id="lastActive">—</span></div>
+          <div class="text-red-600" id="statusError"></div>
+        </div>
+      </div>
+
+      <!-- Latest detection -->
+      <div class="bg-white rounded-xl shadow p-4">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-semibold text-lg">Latest Detection</h2>
+          <button id="refreshBtn"
+                  class="py-2 px-3 rounded-lg bg-gray-200 hover:bg-gray-300 text-sm">
+            Refresh
+          </button>
+        </div>
+        <div id="latestWrap" class="flex flex-col items-center">
+          <p class="text-gray-500" id="latestCaption">Waiting…</p>
+          <div id="latestImg" class="mt-3"></div>
+        </div>
+      </div>
+
+      <!-- Bulk actions -->
+      <div class="bg-white rounded-xl shadow p-4 space-y-3">
+        <h2 class="font-semibold text-lg">Bulk Actions</h2>
+        <div class="flex flex-wrap gap-2">
+          <button id="selectAllBtn" class="py-2 px-3 rounded-lg bg-gray-200 hover:bg-gray-300 text-sm">Select All</button>
+          <button id="deselectAllBtn" class="py-2 px-3 rounded-lg bg-gray-200 hover:bg-gray-300 text-sm">Deselect All</button>
+          <button id="downloadSelBtn" class="py-2 px-3 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 text-sm">Download Selected (ZIP)</button>
+          <button id="deleteSelBtn" class="py-2 px-3 rounded-lg bg-red-600 text-white hover:bg-red-700 text-sm">Delete Selected</button>
+        </div>
+        <p class="text-xs text-gray-500">
+          Tip: You can also click images to toggle selection.
+        </p>
+      </div>
+    </section>
+
+    <!-- Gallery -->
+    <section class="bg-white rounded-xl shadow p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-semibold text-lg">Recent Faces</h2>
+        <span id="countBadge" class="text-xs bg-gray-100 rounded-full px-2 py-1"></span>
+      </div>
+      <div id="gallery" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        <!-- items injected -->
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ===== CONFIG (uses your existing Realtime DB structure) =====
+    const BASE = "https://faceuploader-3347e-default-rtdb.firebaseio.com/";
+    const URL_FACES   = BASE + "faces.json";
+    const URL_FACE    = (key) => BASE + "faces/" + key + ".json";
+    const URL_STATUS  = BASE + "status.json";
+    const URL_CONTROL = BASE + "control/start_recognition.json";
+
+    // ===== UI helpers =====
+    function banner(type, msg) {
+      const wrap = document.getElementById("banner");
+      const inner = document.getElementById("banner-inner");
+      const cls = {
+        error: "bg-red-100 text-red-800 border border-red-200",
+        success: "bg-green-50 text-green-800 border border-green-200",
+        info: "bg-blue-50 text-blue-800 border border-blue-200",
+        warn: "bg-yellow-50 text-yellow-800 border border-yellow-200"
+      }[type] || "bg-blue-50 text-blue-800 border border-blue-200";
+      inner.className = "rounded-lg p-3 " + cls;
+      inner.textContent = msg;
+      wrap.classList.remove("hidden");
+      setTimeout(() => wrap.classList.add("hidden"), 6000);
+    }
+
+    let cachedStatus = { is_recognition_active: false, last_active: null, error: "" };
+    let faces = []; // [{key, image_base64, timestamp, selected:false}, ...]
+
+    function setStatusUI() {
+      const el = document.getElementById("status-indicator");
+      const last = document.getElementById("lastActive");
+      const err = document.getElementById("statusError");
+
+      if (cachedStatus.error) {
+        err.textContent = cachedStatus.error || "";
+      } else {
+        err.textContent = "";
+      }
+
+      last.textContent = cachedStatus.last_active || "—";
+
+      if (cachedStatus.is_recognition_active) {
+        el.innerHTML = `<span class="bg-green-500/90 px-3 py-1 rounded-full">🟢 Capturing Faces</span>`;
+      } else {
+        el.innerHTML = `<span class="bg-red-500/90 px-3 py-1 rounded-full">🔴 Stopped</span>`;
+      }
+
+      const btn = document.getElementById("toggleBtn");
+      btn.disabled = false;
+      btn.textContent = cachedStatus.is_recognition_active ? "Stop Recognition" : "Start Recognition";
+    }
+
+    async function fetchStatus() {
+      try {
+        const res = await fetch(URL_STATUS, { cache: "no-store" });
+        const data = await res.json();
+        cachedStatus = data || { is_recognition_active: false, last_active: null, error: "Device offline" };
+      } catch {
+        cachedStatus = { is_recognition_active: false, last_active: cachedStatus.last_active || null, error: "Network error" };
+      }
+      setStatusUI();
+    }
+
+    async function toggleRemote() {
+      const btn = document.getElementById("toggleBtn");
+      btn.disabled = true;
+      btn.textContent = "Working…";
+      const desired = !cachedStatus.is_recognition_active;
+      try {
+        const r = await fetch(URL_CONTROL, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(desired)
+        });
+        if (!r.ok) throw new Error("control write failed");
+        // wait briefly for status to reflect
+        const start = Date.now();
+        let ok = false;
+        while (Date.now() - start < 8000) {
+          await new Promise(r => setTimeout(r, 800));
+          await fetchStatus();
+          if (cachedStatus.is_recognition_active === desired) { ok = true; break; }
+        }
+        if (!ok) banner("warn", desired ? "Could not confirm start. App may be offline/camera busy." : "Could not confirm stop.");
+        else banner("success", desired ? "Capture started." : "Capture stopped.");
+      } catch {
+        banner("error", "Remote control failed (network/rules).");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = cachedStatus.is_recognition_active ? "Stop Recognition" : "Start Recognition";
+      }
+    }
+
+    // ===== Faces: load, render, select, download, delete =====
+    function renderLatest(entry) {
+      const cap = document.getElementById("latestCaption");
+      const box = document.getElementById("latestImg");
+      if (!entry) {
+        cap.textContent = "No images yet";
+        box.innerHTML = "";
+        return;
+      }
+      cap.textContent = entry.timestamp || "";
+      box.innerHTML = `<img class="rounded-lg shadow max-h-72" src="data:image/jpeg;base64,${entry.image_base64}" alt="latest" />`;
+    }
+
+    function renderGallery() {
+      const g = document.getElementById("gallery");
+      const badge = document.getElementById("countBadge");
+      g.innerHTML = "";
+      badge.textContent = faces.length.toString();
+
+      if (!faces.length) {
+        g.innerHTML = `<div class="col-span-full text-gray-400 text-center py-6">No faces yet</div>`;
+        renderLatest(null);
+        return;
+      }
+
+      // latest is first (faces sorted desc by timestamp)
+      renderLatest(faces[0]);
+
+      for (const f of faces) {
+        const card = document.createElement("div");
+        card.className = `relative border rounded-lg overflow-hidden bg-white hover:shadow transition`;
+
+        const imgWrap = document.createElement("div");
+        imgWrap.className = "cursor-pointer";
+        imgWrap.innerHTML = `
+          <img class="w-full aspect-square object-cover" src="data:image/jpeg;base64,${f.image_base64}" alt="${f.timestamp || ""}">
+        `;
+
+        const meta = document.createElement("div");
+        meta.className = "px-2 py-2 text-xs text-gray-700 flex items-center justify-between";
+        meta.innerHTML = `
+          <span class="truncate">${f.timestamp || ""}</span>
+          <input type="checkbox" class="h-4 w-4" ${f.selected ? "checked" : ""}>
+        `;
+
+        // click image toggles selection
+        imgWrap.onclick = () => {
+          f.selected = !f.selected;
+          checkbox.checked = f.selected;
+          card.classList.toggle("ring-2", f.selected);
+          card.classList.toggle("ring-blue-500", f.selected);
+        };
+
+        const checkbox = meta.querySelector("input[type=checkbox]");
+        checkbox.addEventListener("change", () => {
+          f.selected = checkbox.checked;
+          card.classList.toggle("ring-2", f.selected);
+          card.classList.toggle("ring-blue-500", f.selected);
+        });
+
+        card.appendChild(imgWrap);
+        card.appendChild(meta);
+        g.appendChild(card);
+
+        if (f.selected) {
+          card.classList.add("ring-2", "ring-blue-500");
+        }
+      }
+    }
+
+    async function loadFaces() {
+      document.getElementById("refreshBtn").disabled = true;
+      try {
+        const res = await fetch(URL_FACES, { cache: "no-store" });
+        const data = await res.json();
+        if (!data) {
+          faces = [];
+          renderGallery();
+          return;
+        }
+        // Convert to array with keys and sort newest first by timestamp
+        faces = Object.entries(data)
+          .map(([key, v]) => ({ key, ...v, selected: false }))
+          .sort((a, b) => (new Date(b.timestamp || 0)) - (new Date(a.timestamp || 0)));
+        renderGallery();
+      } catch {
+        banner("error", "Failed to load images.");
+      } finally {
+        document.getElementById("refreshBtn").disabled = false;
+      }
+    }
+
+    function selectAll(val) {
+      faces.forEach(f => f.selected = val);
+      renderGallery();
+    }
+
+    function b64ToUint8Array(b64) {
+      const binary = atob(b64);
+      const len = binary.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+      return bytes;
+    }
+
+    async function downloadSelectedZip() {
+      const selected = faces.filter(f => f.selected);
+      if (!selected.length) {
+        banner("warn", "No images selected.");
+        return;
+      }
+      const zip = new JSZip();
+      selected.forEach((f, idx) => {
+        const bytes = b64ToUint8Array(f.image_base64);
+        // Filename: timestamp_key.jpg
+        const safeTs = (f.timestamp || `img_${idx}`).replace(/[:\s]/g, "_");
+        zip.file(`${safeTs}_${f.key}.jpg`, bytes);
+      });
+      const blob = await zip.generateAsync({ type: "blob" });
+      saveAs(blob, `faces_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.zip`);
+    }
+
+    async function deleteSelected() {
+      const selected = faces.filter(f => f.selected);
+      if (!selected.length) {
+        banner("warn", "No images selected.");
+        return;
+      }
+      if (!confirm(`Delete ${selected.length} image(s)? This cannot be undone.`)) return;
+
+      let ok = 0, fail = 0;
+      for (const f of selected) {
+        try {
+          const r = await fetch(URL_FACE(f.key), { method: "DELETE" });
+          if (r.ok) ok++; else fail++;
+        } catch {
+          fail++;
+        }
+      }
+      banner(fail ? "warn" : "success", `Deleted ${ok} image(s)` + (fail ? `, failed ${fail}` : ""));
+      await loadFaces();
+    }
+
+    // ===== Wire up events =====
+    document.getElementById("toggleBtn").addEventListener("click", toggleRemote);
+    document.getElementById("refreshBtn").addEventListener("click", async () => {
+      await fetchStatus();
+      await loadFaces();
+    });
+    document.getElementById("selectAllBtn").addEventListener("click", () => selectAll(true));
+    document.getElementById("deselectAllBtn").addEventListener("click", () => selectAll(false));
+    document.getElementById("downloadSelBtn").addEventListener("click", downloadSelectedZip);
+    document.getElementById("deleteSelBtn").addEventListener("click", deleteSelected);
+
+    // ===== Init =====
+    (async function init() {
+      document.getElementById("toggleBtn").disabled = true;
+      await fetchStatus();
+      await loadFaces();
+      // light polling
+      setInterval(fetchStatus, 5000);
+      setInterval(loadFaces, 5000);
+    })();
+  </script>
+</body>
+</html>
