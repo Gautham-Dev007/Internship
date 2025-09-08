@@ -5,24 +5,25 @@
 ![License](https://img.shields.io/github/license/Gautham-Dev007/Internship)
 ![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)
 
-
 This repository is a **central hub for multiple embedded systems, IoT, and computer vision projects**.  
-⚠️ **Important:** All projects are packaged as `.zip` archives.  
-To explore a project, **download and extract** the corresponding `.zip` file first.
+📦 Some projects are in **folders** for direct browsing, while others are **packaged as `.zip` archives**.  
+To explore a project, either **open the folder** or **download and extract the `.zip` file**.
 
 ---
 
 ## 📂 Repository Overview
 
-| File/Folder | Description |
-|-------------|-------------|
-| **Face Recog.zip** | Face recognition project using image processing and AI techniques. |
-| **Face_Recognition.zip** | Alternative face recognition implementation, possibly different model or approach. |
-| **Industrial Data System Control.zip** | Industrial automation and data acquisition/control (UI designed in Figma). |
-| **STM32_3PHASEdemo.zip** | STM32-based demo for monitoring and controlling a 3-phase power system using the EVAL board. |
-| **Visual_Pointer.zip** | Visual pointer or tracking system with GUI-based interaction using a camera. |
-| **WiFi_SMTP.zip** | IoT email client project using Wi-Fi (SMTP protocol) for notifications. |
-| **LICENSE** | Repository license file. |
+| File/Folder | Type | Description |
+|-------------|------|-------------|
+| **Face_Recognition** | 📁 Folder | Face recognition project using image processing and AI techniques. |
+| **Industrial Data System Control** | 📁 Folder | Industrial automation and data acquisition/control (UI designed in Figma). |
+| **Visual_Pointer** | 📁 Folder | Visual pointer/tracking system with GUI interaction using a camera. |
+| **WiFi_SMTP** | 📁 Folder | IoT email client project using Wi-Fi (SMTP protocol) for notifications. |
+| **Face Recog.zip** | 📦 ZIP | Another face recognition implementation (different model or approach). |
+| **Face_Recognition.zip** | 📦 ZIP | Duplicate/alternate version of Face Recognition project. |
+| **STM32_3PHASEdemo.zip** | 📦 ZIP | STM32 demo for monitoring & controlling a 3-phase power system. |
+| **LICENSE** | 📄 File | Repository license file. |
+| **README.md** | 📄 File | This file (project overview). |
 
 ---
 
