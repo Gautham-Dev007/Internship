@@ -1,9 +1,10 @@
 # 🚀 Embedded Systems & IoT Project Collection
 
-![GitHub repo size](https://img.shields.io/github/repo-size/Gautham-Dev007/Internship.git)
-![GitHub last commit](https://img.shields.io/github/last-commit/Gautham-Dev007/Internship.git)
-![License](https://img.shields.io/github/license/Gautham-Dev007/Internship.git)
+![GitHub repo size](https://img.shields.io/github/repo-size/Gautham-Dev007/Internship)
+![GitHub last commit](https://img.shields.io/github/last-commit/Gautham-Dev007/Internship)
+![License](https://img.shields.io/github/license/Gautham-Dev007/Internship)
 ![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)
+
 
 This repository is a **central hub for multiple embedded systems, IoT, and computer vision projects**.  
 Each project is packaged in a ZIP file with **complete source code, documentation, and required resources**.  
